@@ -1,10 +1,10 @@
 <div class="card border-info m-3">
     <div class="card-header bg-primary text-white">
-        <h3 class="card-title">Cusomer List</h3>
-      </div>
+        <h3 class="card-title">Customer List</h3>
+    </div>
     <div class="card-body">
         <div class="mb-1">
-            <a class="btn btn-success" routerLink="/add-customer">
+            <a class="btn btn-success" routerLink="/customer-new">
                 <i class="fas fa-plus-circle"></i>
                 New Customer</a>
         </div>
@@ -25,7 +25,11 @@
                         <td>{{entity.name.first + ' ' +entity.name.last }}</td>
                         <td>{{entity.birthday }}</td>
                         <td>{{entity.gender === 'm' ? 'Man' :"Woman" }}</td>
-                        <td></td>
+                        <td style="width: 10%;">
+                            <a class="btn btn-info " [routerLink]="['/customer-detail',entity.customerID]">
+                                <i class="fa fa-info-circle"></i>
+                                Detail</a>
+                        </td>
                     </tr>
                 </tbody>
             </table>

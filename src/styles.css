@@ -10,3 +10,9 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .card-footer {
     padding-left: 0rem !important;
 }
+
+.table a, button{
+    margin-right: 5px !important;
+
+}
+

@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ICustomer } from '../Models/ICustomer';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 let customerList: ICustomer[] = [
   {
@@ -69,11 +71,17 @@ export class BackEndService {
 
   constructor() { }
 
-  LoadAllCustomers(): ICustomer[] {
-    return customerList;
+  LoadAllCustomers(): Observable<ICustomer[]> {
+    return of(customerList);
   }
 
   AddCustomer(customer: ICustomer) {
-    customerList = [...customerList, customer]
+    customer.customerID = customerList.sort((x,y)=> y.customerID - x.customerID)[0].customerID + 1;
+    customerList = [...customerList, customer];
   }
+  GetCustomer(id:string) : Observable<ICustomer> {
+    return this.LoadAllCustomers().pipe(
+     map((customers: ICustomer[] ) =>customers.find(x=>x.customerID === +id)));
+  }
+
 }

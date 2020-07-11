@@ -5,8 +5,8 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { CustomerListComponent } from './customers/list/list.component';
-import { AddCustomerComponent } from './customers/add/add.component';
+import { CustomerListComponent } from './customers/customer-list/customer-list.component';
+import { CustomerDetailComponent } from './customers/customer-detail/customer-detail.component';
 import { AppRoutingModule } from './app-routing.module';
 import { ReactiveFormsModule } from '@angular/forms';
 
@@ -15,7 +15,7 @@ import { ReactiveFormsModule } from '@angular/forms';
   declarations: [
     AppComponent,
     CustomerListComponent,
-    AddCustomerComponent
+    CustomerDetailComponent
   ],
   imports: [
     BrowserModule,
