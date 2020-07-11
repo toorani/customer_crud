@@ -8,5 +8,4 @@ export interface ICustomer {
     gender:"m" | "w",
     lastContact : string,
     customerLifetimeValue : number
-
 }

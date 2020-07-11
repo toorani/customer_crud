@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { BackEndService } from 'src/app/Services/back-end.service';
-import { IDataColumn } from 'src/app/Shared/IDataColumn';
 
 
 @Component({
@@ -10,11 +9,15 @@ import { IDataColumn } from 'src/app/Shared/IDataColumn';
 })
 
 
-export class ListComponent implements OnInit {
+export class CustomerListComponent implements OnInit {
 
   customers = this.serverApi.LoadAllCustomers();
 
   constructor(private serverApi:BackEndService) { }
+
+  addCustomer(){
+
+  }
 
   ngOnInit(): void {
   }

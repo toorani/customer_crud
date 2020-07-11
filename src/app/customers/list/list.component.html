@@ -1,10 +1,12 @@
 <div class="card border-info m-3">
-    <div class="card-header bg-dark text-white">
+    <div class="card-header bg-primary text-white">
         <h3 class="card-title">Cusomer List</h3>
       </div>
     <div class="card-body">
         <div class="mb-1">
-            <input type="button" class="btn btn-primary" value="New Customer" />
+            <a class="btn btn-success" routerLink="/add-customer">
+                <i class="fas fa-plus-circle"></i>
+                New Customer</a>
         </div>
         <div class="row">
             <table class="table table-striped">
@@ -14,6 +16,7 @@
                         <th scope="col">Full Name</th>
                         <th scope="col">Birthday</th>
                         <th scope="col">Gender</th>
+                        <th scope="col"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -22,6 +25,7 @@
                         <td>{{entity.name.first + ' ' +entity.name.last }}</td>
                         <td>{{entity.birthday }}</td>
                         <td>{{entity.gender === 'm' ? 'Man' :"Woman" }}</td>
+                        <td></td>
                     </tr>
                 </tbody>
             </table>
