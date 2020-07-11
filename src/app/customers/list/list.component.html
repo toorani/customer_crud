@@ -1,1 +1,31 @@
-<h1>Hello!</h1>
+<div class="card border-info m-3">
+    <div class="card-header bg-dark text-white">
+        <h3 class="card-title">Cusomer List</h3>
+      </div>
+    <div class="card-body">
+        <div class="mb-1">
+            <input type="button" class="btn btn-primary" value="New Customer" />
+        </div>
+        <div class="row">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Full Name</th>
+                        <th scope="col">Birthday</th>
+                        <th scope="col">Gender</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let entity of customers; index as idx">
+                        <th scope="row">{{ idx + 1 }}</th>
+                        <td>{{entity.name.first + ' ' +entity.name.last }}</td>
+                        <td>{{entity.birthday }}</td>
+                        <td>{{entity.gender === 'm' ? 'Man' :"Woman" }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
