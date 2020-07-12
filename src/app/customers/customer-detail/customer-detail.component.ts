@@ -5,6 +5,8 @@ import { Router, ActivatedRoute, ParamMap } from '@angular/router';
 import { ICustomer } from 'src/app/Models/ICustomer';
 import { observable, Observable } from 'rxjs'
 import { switchMap } from 'rxjs/operators'
+import { ServerActionResult } from 'src/app/Shared/ActionResult';
+import { MessageDialogService } from 'src/app/Services/message-dialog.service';
 
 @Component({
   selector: 'app-customer-detail',
@@ -13,8 +15,10 @@ import { switchMap } from 'rxjs/operators'
 export class CustomerDetailComponent implements OnInit {
 
   customerEntity: ICustomer;
-  customerEntity$: Observable<ICustomer>;
+  customerEntity$: Observable<ServerActionResult<ICustomer>>;
+  idSelected = 0;
   customerFrom = this.formBuilder.group({
+    customerID: [0],
     name: this.formBuilder.group({
       first: ['', Validators.required],
       last: ['', Validators.required]
@@ -26,29 +30,54 @@ export class CustomerDetailComponent implements OnInit {
   constructor(private formBuilder: FormBuilder
     , private serverApi: BackEndService
     , private router: Router
-    , private route: ActivatedRoute) { }
+    , private route: ActivatedRoute
+    , private messageDlg: MessageDialogService) { }
 
   ngOnInit(): void {
 
     this.customerEntity$ = this.route.paramMap.pipe(
-      switchMap((params: ParamMap) =>
-        this.serverApi.GetCustomer(params.get('id')))
+      switchMap((params: ParamMap) => {
+        this.idSelected = +params.get('id');
+        return this.serverApi.GetCustomer(this.idSelected)
+      })
     );
 
     this.customerEntity$.subscribe(entity => {
-      if (entity){
-        this.customerEntity = entity;
-        this.customerFrom.patchValue(entity)
+
+      if (this.idSelected !== 0) {
+        if (entity.isSuccess) {
+          this.customerEntity = entity.result;
+          this.customerFrom.patchValue(this.customerEntity)
+        }
+        else {
+          this.messageDlg.showError(entity.messages);
+        }
       }
-      
     })
 
   }
-
   onSubmit() {
     if (this.customerFrom.valid) {
-      this.serverApi.AddCustomer(this.customerFrom.value);
-      this.router.navigate(['/']);
+      let actionResult = new Observable<ServerActionResult<ICustomer>>();
+      if (this.idSelected === 0) {
+        actionResult = this.serverApi.AddCustomer(this.customerFrom.value)
+          
+      }
+      else {
+        debugger;
+        actionResult = this.serverApi.UpdateCustomer(this.customerFrom.value, this.idSelected);
+      }
+
+      actionResult.subscribe(result => {
+        if (result.isSuccess) {
+          this.messageDlg.showSuccess(result.messages);
+          this.router.navigate(['/']);
+        }
+        else {
+
+          this.messageDlg.showError(result.messages);
+        }
+      });
     }
   }
 

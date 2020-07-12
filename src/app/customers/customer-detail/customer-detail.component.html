@@ -2,8 +2,8 @@
   <div class="card border-info m-3">
     <div class="card-header bg-primary text-white">
 
-      <h3 *ngIf="customerEntity" class="card-title">Customer Detail</h3>
-      <h3 *ngIf="!customerEntity" class="card-title">New Customer</h3>
+      <h3 *ngIf="idSelected !== 0" class="card-title">Customer Detail</h3>
+      <h3 *ngIf="idSelected === 0" class="card-title">New Customer</h3>
     </div>
     <div class="card-body">
       <form [formGroup]="customerFrom" (ngSubmit)="onSubmit()">
@@ -34,7 +34,7 @@
           <button type="submit" class="btn btn-success" [disabled]="!customerFrom.valid">
             <i class="far fa-check-circle"></i>
             Submit</button>
-            <button type="button" *ngIf="customerEntity"  class="btn btn-danger">
+            <button type="button" *ngIf="idSelected !== 0"  class="btn btn-danger">
               <i class="fas fa-trash-alt"></i>
               Delete</button>
             <a routerLink="/customer-list" class="btn btn-primary">
