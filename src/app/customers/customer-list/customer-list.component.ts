@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { BackEndService } from 'src/app/Services/back-end.service';
+import { CustomerAPIService } from 'src/app/Services/customer-api.service';
 import { ICustomer } from 'src/app/Models/ICustomer';
 
 import { MessageDialogService } from 'src/app/Services/message-dialog.service';
@@ -15,7 +15,7 @@ export class CustomerListComponent implements OnInit {
 
   customers: ICustomer[];
 
-  constructor(private serverApi: BackEndService,
+  constructor(private serverApi: CustomerAPIService,
     private messageDlg: MessageDialogService) { }
 
 

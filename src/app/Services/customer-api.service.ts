@@ -65,9 +65,7 @@ let customerList: ICustomer[] = [
 
 
 @Injectable({ providedIn: 'root' })
-
-
-export class BackEndService {
+export class CustomerAPIService  {
 
   constructor() { }
 

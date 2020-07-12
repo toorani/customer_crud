@@ -18,4 +18,6 @@ const routes: Routes = [
   declarations: []
 })
 
-export class CustomerRoutingModule { }
+export class CustomerRoutingModule { 
+  static customerRoutes: Routes = routes;
+}

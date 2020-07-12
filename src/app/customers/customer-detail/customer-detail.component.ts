@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { BackEndService } from 'src/app/Services/back-end.service';
+import { CustomerAPIService } from 'src/app/Services/customer-api.service';
 import { Router, ActivatedRoute, ParamMap } from '@angular/router';
 import { ICustomer } from 'src/app/Models/ICustomer';
 import { Observable } from 'rxjs'
@@ -29,7 +29,7 @@ export class CustomerDetailComponent implements OnInit {
   });
 
   constructor(private formBuilder: FormBuilder
-    , private serverApi: BackEndService
+    , private serverApi: CustomerAPIService
     , private router: Router
     , private route: ActivatedRoute
     , private messageDlg: MessageDialogService) { }

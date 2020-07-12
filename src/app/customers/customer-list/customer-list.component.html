@@ -5,11 +5,11 @@
     <div class="card-body">
         <div class="mb-1">
             <a class="btn btn-success" routerLink="/customer-new">
-                <i class="fas fa-plus-circle"></i>
-                New Customer</a>
+                <i class="fas fa-plus-circle"></i>New Customer</a>
         </div>
         <div class="row">
-            <table class="table table-striped">
+
+            <table class="table table-striped" *ngIf="customers.length != 0">
                 <thead>
                     <tr>
                         <th scope="col">#</th>
@@ -33,6 +33,10 @@
                     </tr>
                 </tbody>
             </table>
+            <div class="alert alert-dark" role="alert" id="emptyDataAlert"  *ngIf="customers.length == 0">
+                There is no customer for showing.
+            </div>
+
         </div>
 
     </div>
