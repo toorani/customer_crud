@@ -79,8 +79,7 @@ export class BackEndService {
   }
 
   AddCustomer(customer: ICustomer): Observable<ServerActionResult<ICustomer>> {
-    let tempData = [...customerList];
-    customer.customerID = tempData.sort((x, y) => y.customerID - x.customerID)[0].customerID + 1;
+    customer.customerID = Math.max(...customerList.map(entity => entity.customerID))+ 1 ;
     customerList = [...customerList, customer];
     let result = new ServerActionResult<ICustomer>();
     result.result = customer;
