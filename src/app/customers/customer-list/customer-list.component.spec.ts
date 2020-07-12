@@ -1,7 +1,6 @@
 import { async, ComponentFixture, TestBed, tick } from '@angular/core/testing';
 
 import { CustomerListComponent } from './customer-list.component';
-import { By } from '@angular/platform-browser';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Component } from '@angular/core';
 import { Location } from '@angular/common';
@@ -10,6 +9,7 @@ import { ICustomer } from 'src/app/Models/ICustomer';
 import { of } from 'rxjs';
 import { ServerActionResult } from 'src/app/Shared/ActionResult';
 import { CustomerAPIService } from 'src/app/Services/customer-api.service';
+import { TableElement, AnchorElement, H3Element } from 'src/app/Shared/DOMHelper';
 
 
 describe('CustomerListComponent', () => {
@@ -30,7 +30,10 @@ describe('CustomerListComponent', () => {
         CustomerDetailMock
       ],
       imports: [RouterTestingModule.withRoutes([
-        { path: 'customer-new', component: CustomerDetailMock, pathMatch: 'full' }
+        { path: 'customer-new', component: CustomerDetailMock, pathMatch: 'full' },
+        { path: 'customer-detail/:id', component: CustomerDetailMock, pathMatch: 'full' },
+        { path: 'customer-detail', component: CustomerDetailMock, pathMatch: 'full' },
+        
       ])],
       providers: [
         { provide: CustomerAPIService, useValue: customerApiService }
@@ -52,20 +55,19 @@ describe('CustomerListComponent', () => {
 
 
 
-  it('there should be one H3 tage ', () => {
-    let h3Elemts = fixture.debugElement
-      .queryAll(By.css("h3"));
-    expect(h3Elemts.length).toEqual(1);
+  it('should be one H3 tag ', () => {
+    let h3Elemts = new H3Element(fixture);
+    expect(h3Elemts.debugElements.length).toEqual(1);
   });
 
-  it(`the page's capation should be 'Customer List' `, () => {
-    let headerEle = fixture.debugElement.query(By.css("h3"))
+  it(`should be page's capation 'Customer List' `, () => {
+    let headerEle = new H3Element(fixture);
     expect(headerEle.nativeElement.textContent).toBe('Customer List');
   });
 
   it(`should be <a/> tage with text 'New Customer' `, () => {
-    let linkElemnts = fixture.debugElement.queryAll(By.css("a"))
-    expect(linkElemnts[0].nativeElement.textContent).toBe('New Customer');
+    let linkElemnts = new AnchorElement(fixture);
+    expect(linkElemnts.debugElements[0].nativeElement.textContent).toBe('New Customer');
   });
 
   it(`Should navigate to '' before 'New Customer' button click `, () => {
@@ -75,21 +77,23 @@ describe('CustomerListComponent', () => {
 
   it(`Should navigate to '/customer-new' after 'New Customer' click `, () => {
     const location = TestBed.get(Location);
-    let linkElemnts = fixture.debugElement.queryAll(By.css("a"))
-    let btn_NewCustomer = linkElemnts[0].nativeElement as HTMLAnchorElement;
+
+    let linkElemnts = new AnchorElement(fixture);
+    let btn_NewCustomer = linkElemnts.debugElements[0].nativeElement as HTMLAnchorElement;
     btn_NewCustomer.click();
+
     fixture.detectChanges();
     fixture.whenStable().then(() => {
       expect(location.path()).toBe('/customer-new')
     });
   });
 
-  it(`should be there one table element`, () => {
+  it(`should be one table element`, () => {
     mockLoadAllCustomers.byDefaultMockData();
     component.ngOnInit();
     fixture.detectChanges();
-    let tableElements = fixture.debugElement.queryAll(By.css("table"))
-    expect(tableElements.length).toEqual(1);
+    let tableElement = new TableElement<CustomerListComponent>(fixture);
+    expect(tableElement.debugElements.length).toEqual(1);
   });
 
   it(`should show text 'There is no customer for showing.'  when there are not customers avaliable`, () => {
@@ -103,9 +107,8 @@ describe('CustomerListComponent', () => {
     component.ngOnInit();
 
     fixture.detectChanges();
-    let tableElement = fixture.debugElement.query(By.css("table"));
-    let rows = tableElement.nativeElement.rows;
-    expect(rows.length).toEqual(3)
+    let tableElement = new TableElement<CustomerListComponent>(fixture);
+    expect(tableElement.nativeElement.rows.length).toEqual(3)
 
   });
 
@@ -115,8 +118,8 @@ describe('CustomerListComponent', () => {
     component.ngOnInit();
 
     fixture.detectChanges();
-    let anchorElemts = fixture.debugElement.queryAll(By.css("a"));
-    expect(anchorElemts.slice(1).length).toEqual(2);
+    let anchorElemts = new AnchorElement(fixture);
+    expect(anchorElemts.debugElements.slice(1).length).toEqual(2);
 
   });
 
@@ -133,21 +136,71 @@ describe('CustomerListComponent', () => {
   });
 
 
-  it(`should show Reza Toorani as Full Name(name.first ' ' name.last) at second column of the table`, () => {
-    mockLoadAllCustomers.byMockData([{
+  it(`should show Reza Toorani as Full Name(name.first = reza  name.last=Toorani) at second column of the table`, () => {
+    let customerData: ICustomer = {
       customerID: 1,
       name: { first: 'Reza', last: 'Toorani' },
       birthday: '05/05/1980',
       gender: 'm',
       customerLifetimeValue: 12.5,
       lastContact: ''
-    }]);
+    }
+    mockLoadAllCustomers.byMockData([customerData]);
     component.ngOnInit();
 
     fixture.detectChanges();
-    
+
+    let tableElement = new TableElement(fixture);
+    expect(tableElement.nativeElement.rows[1].cells[1].textContent).toEqual(customerData.name.first + ' ' + customerData.name.last);
 
   });
+
+  it(`should show Man when gender field is 'm' at 4th column of the table`, () => {
+    let customerData: ICustomer = {
+      customerID: 1,
+      name: { first: 'Reza', last: 'Toorani' },
+      birthday: '05/05/1980',
+      gender: 'm',
+      customerLifetimeValue: 12.5,
+      lastContact: ''
+    }
+    mockLoadAllCustomers.byMockData([customerData]);
+    component.ngOnInit();
+
+    fixture.detectChanges();
+
+    let tableElement = new TableElement(fixture);
+    expect(tableElement.nativeElement.rows[1].cells[3].textContent).toEqual('Man');
+
+  });
+
+  it(`Should navigate to '/customer-detail/' + customerID after 'Customer Detail' click`, () => {
+    let customerData: ICustomer = {
+      customerID: 1,
+      name: { first: 'Reza', last: 'Toorani' },
+      birthday: '05/05/1980',
+      gender: 'm',
+      customerLifetimeValue: 12.5,
+      lastContact: ''
+    }
+    mockLoadAllCustomers.byMockData([customerData]);
+    component.ngOnInit();
+
+    fixture.detectChanges();
+    const location = TestBed.get(Location);
+
+    let tableElement = new TableElement(fixture);
+    let btn_customer_detail = tableElement.nativeElement.rows[1].querySelector('a');
+    btn_customer_detail.click();
+
+    fixture.detectChanges();
+
+    fixture.whenStable().then(() => {
+      expect(location.path()).toBe('/customer-detail/' + customerData.customerID)
+    });
+
+  });
+
 
 
 
@@ -206,12 +259,6 @@ class MockLoadAllCustomers {
   }
 }
 
-class DOMHelper<T>{
 
-  getTable<TComponent>(fixture : ComponentFixture<TComponent>){
-    return fixture.debugElement.query(By.css("table"));
-  } 
-
-}
 
 
