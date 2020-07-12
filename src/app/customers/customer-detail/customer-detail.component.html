@@ -34,7 +34,7 @@
           <button type="submit" class="btn btn-success" [disabled]="!customerFrom.valid">
             <i class="far fa-check-circle"></i>
             Submit</button>
-            <button type="button" *ngIf="idSelected !== 0"  class="btn btn-danger">
+            <button type="button" *ngIf="idSelected !== 0" (click)="deleteCustomer()"  class="btn btn-danger">
               <i class="fas fa-trash-alt"></i>
               Delete</button>
             <a routerLink="/customer-list" class="btn btn-primary">

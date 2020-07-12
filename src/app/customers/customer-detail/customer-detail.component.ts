@@ -68,17 +68,26 @@ export class CustomerDetailComponent implements OnInit {
         actionResult = this.serverApi.UpdateCustomer(this.customerFrom.value, this.idSelected);
       }
 
-      actionResult.subscribe(result => {
-        if (result.isSuccess) {
-          this.messageDlg.showSuccess(result.messages);
-          this.router.navigate(['/']);
-        }
-        else {
-
-          this.messageDlg.showError(result.messages);
-        }
-      });
+      this.showResult(actionResult);
     }
+  }
+
+  deleteCustomer(){
+     this.showResult(this.serverApi.DeleteCustomer(this.idSelected))
+     
+  }
+
+  showResult(serverResult : Observable<ServerActionResult<any>>){
+    serverResult.subscribe(result=>{
+      if (result.isSuccess) {
+        this.messageDlg.showSuccess(result.messages);
+        this.router.navigate(['/']);
+      }
+      else {
+
+        this.messageDlg.showError(result.messages);
+      }
+     });    
   }
 
 }

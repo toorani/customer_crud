@@ -78,7 +78,7 @@ export class BackEndService {
     return of(result);
   }
 
-  AddCustomer(customer: ICustomer) : Observable<ServerActionResult<ICustomer>> {
+  AddCustomer(customer: ICustomer): Observable<ServerActionResult<ICustomer>> {
     let tempData = [...customerList];
     customer.customerID = tempData.sort((x, y) => y.customerID - x.customerID)[0].customerID + 1;
     customerList = [...customerList, customer];
@@ -88,32 +88,46 @@ export class BackEndService {
     return of(result);
   }
 
-  UpdateCustomer(customer: ICustomer, id: number) : Observable<ServerActionResult<ICustomer>> {
+  UpdateCustomer(customer: ICustomer, id: number): Observable<ServerActionResult<ICustomer>> {
     let result = new ServerActionResult<ICustomer>();
-    console.log(id + ' ' + customer.customerID);
-    if (id === customer.customerID)
-    {
-      let dbCustomerIndex = customerList.findIndex(x=>x.customerID === id);
-      if (dbCustomerIndex != -1){
+    if (id === customer.customerID) {
+      let dbCustomerIndex = customerList.findIndex(x => x.customerID === id);
+      if (dbCustomerIndex != -1) {
         customerList[dbCustomerIndex] = customer;
         result.isSuccess = true;
         result.messages.push('the customer was successfully updated.')
       }
-      else{
+      else {
         result.isSuccess = false;
         result.messages.push('Customer not found!')
       }
-       
+
     }
-    else{
+    else {
       result.isSuccess = false;
       result.messages.push('Bad request!');
     }
     return of(result);
   }
 
+  DeleteCustomer(id: number): Observable<ServerActionResult<number>> {
+    let result = new ServerActionResult<number>();
+    let dbCustomerIndex = customerList.findIndex(x => x.customerID === id);
+    if (dbCustomerIndex != -1) {
+      customerList = [...customerList.slice(0, dbCustomerIndex), ...customerList.slice(dbCustomerIndex + 1, customerList.length)]
+      result.result = id;
+      result.isSuccess = true;
+      result.messages.push('the customer was successfully deleted.')
+    }
+    else {
+      result.isSuccess = false;
+      result.messages.push('Customer not found!')
+    }
+    return of(result);
+  }
+
   GetCustomer(id: number): Observable<ServerActionResult<ICustomer>> {
-    
+
     return of(customerList).pipe(
       map((customers: ICustomer[]) => {
         let result = new ServerActionResult<ICustomer>();
