@@ -38,21 +38,23 @@ export class CustomerDetailComponent implements OnInit {
 
     this.customerEntity$ = this.route.paramMap.pipe(
       switchMap((params: ParamMap) => {
-        this.idSelected = +params.get('id');
-        return this.serverApi.GetCustomer(this.idSelected)
+        if (params.has('id')){
+          this.idSelected = +params.get('id');
+          return this.serverApi.GetCustomer(this.idSelected)
+        }
+        return new Observable<ServerActionResult<ICustomer>>()
       })
     );
 
+    
     this.customerEntity$.subscribe(entity => {
 
-      if (this.idSelected !== 0) {
-        if (entity.isSuccess) {
-          this.customerEntity = entity.result;
-          this.customerFrom.patchValue(this.customerEntity)
-        }
-        else {
-          this.messageDlg.showError(entity.messages);
-        }
+      if (entity.isSuccess) {
+        this.customerEntity = entity.result;
+        this.customerFrom.patchValue(this.customerEntity)
+      }
+      else {
+        this.messageDlg.showError(entity.messages);
       }
     })
 
@@ -62,24 +64,25 @@ export class CustomerDetailComponent implements OnInit {
       let actionResult = new Observable<ServerActionResult<ICustomer>>();
       if (this.idSelected === 0) {
         actionResult = this.serverApi.AddCustomer(this.customerFrom.value)
-          
+
       }
       else {
-        debugger;
         actionResult = this.serverApi.UpdateCustomer(this.customerFrom.value, this.idSelected);
       }
 
       this.showResult(actionResult);
     }
+    else {
+      this.showErrorValidation();
+    }
   }
 
-  deleteCustomer(){
-     this.showResult(this.serverApi.DeleteCustomer(this.idSelected))
-     
+  deleteCustomer() {
+    this.showResult(this.serverApi.DeleteCustomer(this.idSelected))
   }
 
-  showResult(serverResult : Observable<ServerActionResult<any>>){
-    serverResult.subscribe(result=>{
+  showResult(serverResult: Observable<ServerActionResult<any>>) {
+    serverResult.subscribe(result => {
       if (result.isSuccess) {
         this.messageDlg.showSuccess(result.messages);
         this.router.navigate(['/']);
@@ -88,7 +91,22 @@ export class CustomerDetailComponent implements OnInit {
 
         this.messageDlg.showError(result.messages);
       }
-     });    
+    });
+  }
+
+  showErrorValidation() {
+    let errMsg: string[] = [];
+
+    if (!this.customerFrom.get("name.first").valid)
+      errMsg.push('Fist name is required');
+    if (!this.customerFrom.get("name.last").valid)
+      errMsg.push('Last name is required');
+    if (!this.customerFrom.get("birthday").valid)
+      errMsg.push('Birthday is required');
+    if (!this.customerFrom.get("gender").valid)
+      errMsg.push('Gender is required');
+
+    this.messageDlg.showError(errMsg);
   }
 
 }

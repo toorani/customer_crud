@@ -31,15 +31,13 @@
         </div>
         <div class="card-footer bg-transparent border-info ">
 
-          <button type="submit" class="btn btn-success" [disabled]="!customerFrom.valid">
-            <i class="far fa-check-circle"></i>
-            Submit</button>
+          <button type="submit" class="btn btn-success" >
+            <i class="far fa-check-circle"></i>Submit</button>
             <button type="button" *ngIf="idSelected !== 0" (click)="deleteCustomer()"  class="btn btn-danger">
               <i class="fas fa-trash-alt"></i>
               Delete</button>
             <a routerLink="/customer-list" class="btn btn-primary">
-            <i class="fas fa-arrow-alt-circle-left"></i>
-            Back</a>
+            <i class="fas fa-arrow-alt-circle-left"></i>Back</a>
           
         </div>
 

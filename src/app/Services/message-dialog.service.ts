@@ -9,9 +9,9 @@ export class MessageDialogService implements IMessageDialogService {
   constructor() { }
 
   showError(msg:string[]){
-    alert(msg);
+    alert(msg.join('\r\n'));
   }
   showSuccess(msg:string[]){
-    alert(msg);
+    alert(msg.join('\r\n'));
   }
 }

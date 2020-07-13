@@ -2,13 +2,12 @@ import { async, ComponentFixture, TestBed, tick } from '@angular/core/testing';
 
 import { CustomerListComponent } from './customer-list.component';
 import { RouterTestingModule } from '@angular/router/testing';
-import { Location } from '@angular/common';
 import { ICustomer } from 'src/app/Models/ICustomer';
 
 import { of } from 'rxjs';
 import { ServerActionResult } from 'src/app/Shared/ActionResult';
 import { CustomerAPIService } from 'src/app/Services/customer-api.service';
-import { TableElement, AnchorElement, H3Element } from 'src/app/Shared/DOMHelper';
+import { TableElement, AnchorElement, H3Element } from 'src/app/Shared/DOMElements';
 import { Router } from '@angular/router';
 
 
@@ -53,29 +52,22 @@ describe('CustomerListComponent', () => {
     });
     
   })
-  describe('New Customer buuton', () => {
-    it(`should be 'Customer Detail' button count 2 when there are 2 customers avaliable`, () => {
+  describe('Customer Detail buuton', () => {
 
+    beforeEach(()=>{
       mockLoadAllCustomers.byDefaultMockData();
       component.ngOnInit();
 
       fixture.detectChanges();
+    });
+
+    it(`should be 'Customer Detail' button count 2 when there are 2 customers avaliable`, () => {
+
       let anchorElemts = new AnchorElement(fixture);
       expect(anchorElemts.debugElements.slice(1).length).toEqual(2);
 
     });
     it(`Should navigate to '/customer-detail/' + customerID after 'Customer Detail' click`, () => {
-      let customerData: ICustomer = {
-        customerID: 1,
-        name: { first: 'Reza', last: 'Toorani' },
-        birthday: '05/05/1980',
-        gender: 'm',
-        customerLifetimeValue: 12.5,
-        lastContact: ''
-      }
-      mockLoadAllCustomers.byMockData([customerData]);
-      component.ngOnInit();
-      fixture.detectChanges();
 
       spyOn(router, 'navigateByUrl');
 
@@ -84,42 +76,47 @@ describe('CustomerListComponent', () => {
       btn_customer_detail.click();
 
       fixture.detectChanges();
-      expect(router.navigateByUrl).toHaveBeenCalledWith(router.createUrlTree(['/customer-detail', customerData.customerID])
+      expect(router.navigateByUrl).toHaveBeenCalledWith(router.createUrlTree(['/customer-detail', mockLoadAllCustomers.defaultMockData[0].customerID])
         , { skipLocationChange: false, replaceUrl: false, state: undefined });
 
     });
   });
   describe('Customer List', () => {
-    it(`should be one table element`, () => {
+
+    let tableElement;
+
+    beforeEach(()=>{
       mockLoadAllCustomers.byDefaultMockData();
       component.ngOnInit();
       fixture.detectChanges();
-      let tableElement = new TableElement<CustomerListComponent>(fixture);
+
+      tableElement = new TableElement<CustomerListComponent>(fixture);
+    })
+    it(`should be one table element`, () => {
       expect(tableElement.debugElements.length).toEqual(1);
     });
     
     it(`should be table rows three (1 header + 2 data) when there are 2 customers avaliable`, () => {
-
-      mockLoadAllCustomers.byDefaultMockData();
-      component.ngOnInit();
-
-      fixture.detectChanges();
-      let tableElement = new TableElement<CustomerListComponent>(fixture);
       expect(tableElement.nativeElement.rows.length).toEqual(3)
 
     });
   });
-  describe('Customer Detail buuton', () => {
-    it(`should be <a/> tage with text 'New Customer' `, () => {
+  describe('New Customer buuton', () => {
+
+    let btn_NewCustomer :HTMLAnchorElement;
+    beforeEach(()=>{
       let linkElemnts = new AnchorElement(fixture);
-      expect(linkElemnts.debugElements[0].nativeElement.textContent).toBe('New Customer');
+      btn_NewCustomer = linkElemnts.debugElements[0].nativeElement;
+    })  
+
+    it(`should be <a/> tage with text 'New Customer' `, () => {
+      
+      expect(btn_NewCustomer.textContent).toBe('New Customer');
     });
     it(`Should navigate to '/customer-new' after 'New Customer' click `, () => {
 
       spyOn(router, 'navigateByUrl');
 
-      let linkElemnts = new AnchorElement(fixture);
-      let btn_NewCustomer = linkElemnts.debugElements[0].nativeElement as HTMLAnchorElement;
       btn_NewCustomer.click();
       fixture.detectChanges();
       expect(router.navigateByUrl).toHaveBeenCalledWith(router.createUrlTree(['customer-new'])
@@ -130,42 +127,29 @@ describe('CustomerListComponent', () => {
   });
   describe('Data binding', () => {
 
-    it(`should show Man when gender field is 'm' at 4th column of the table`, () => {
-      let customerData: ICustomer = {
-        customerID: 1,
-        name: { first: 'Reza', last: 'Toorani' },
-        birthday: '05/05/1980',
-        gender: 'm',
-        customerLifetimeValue: 12.5,
-        lastContact: ''
-      }
+    let customerData: ICustomer = {
+      customerID: 1,
+      name: { first: 'Reza', last: 'Toorani' },
+      birthday: '05/05/1980',
+      gender: 'm',
+      customerLifetimeValue: 12.5,
+      lastContact: ''
+    }
+    let tableElement;
+    beforeEach(()=>{
       mockLoadAllCustomers.byMockData([customerData]);
       component.ngOnInit();
-
       fixture.detectChanges();
 
-      let tableElement = new TableElement(fixture);
-      expect(tableElement.nativeElement.rows[1].cells[3].textContent).toEqual('Man');
+      tableElement = new TableElement(fixture);
+    })
 
+    it(`should show Man when gender field is 'm' at 4th column of the table`, () => {
+      expect(tableElement.nativeElement.rows[1].cells[3].textContent).toEqual('Man');
     });
 
     it(`should show Reza Toorani as Full Name(name.first = reza  name.last=Toorani) at second column of the table`, () => {
-      let customerData: ICustomer = {
-        customerID: 1,
-        name: { first: 'Reza', last: 'Toorani' },
-        birthday: '05/05/1980',
-        gender: 'm',
-        customerLifetimeValue: 12.5,
-        lastContact: ''
-      }
-      mockLoadAllCustomers.byMockData([customerData]);
-      component.ngOnInit();
-
-      fixture.detectChanges();
-
-      let tableElement = new TableElement(fixture);
       expect(tableElement.nativeElement.rows[1].cells[1].textContent).toEqual(customerData.name.first + ' ' + customerData.name.last);
-
     });
   })
 
@@ -178,7 +162,7 @@ describe('CustomerListComponent', () => {
       component.ngOnInit();
 
       fixture.detectChanges();
-      expect(window.alert).toHaveBeenCalledWith([errorMsg]);
+      expect(window.alert).toHaveBeenCalledWith(errorMsg);
 
     });
     it(`should show text 'There is no customer for showing.'  when there are not customers avaliable`, () => {
@@ -197,25 +181,27 @@ class MockLoadAllCustomers {
     this.customerApiService = _customerApiService;
   }
 
+  defaultMockData :ICustomer[] = [
+    {
+      customerID: 1,
+      name: { first: 'Reza', last: 'Toorani' },
+      birthday: '05/05/1980',
+      gender: 'm',
+      customerLifetimeValue: 12.5,
+      lastContact: ''
+    },
+    {
+      customerID: 2,
+      name: { first: 'Sam', last: 'Toorani' },
+      birthday: '04/05/2014',
+      gender: 'm',
+      customerLifetimeValue: 12.5,
+      lastContact: ''
+    }
+  ];
+
   byDefaultMockData() {
-    this.loadAllCutomersResult.result = [
-      {
-        customerID: 1,
-        name: { first: 'Reza', last: 'Toorani' },
-        birthday: '05/05/1980',
-        gender: 'm',
-        customerLifetimeValue: 12.5,
-        lastContact: ''
-      },
-      {
-        customerID: 2,
-        name: { first: 'Sam', last: 'Toorani' },
-        birthday: '04/05/2014',
-        gender: 'm',
-        customerLifetimeValue: 12.5,
-        lastContact: ''
-      }
-    ];
+    this.loadAllCutomersResult.result = this.defaultMockData;
     this.customerApiService.LoadAllCustomers.and.returnValue(of(this.loadAllCutomersResult))
   }
   byMockData(mockData: ICustomer[]) {
