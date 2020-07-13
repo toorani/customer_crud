@@ -1,10 +1,12 @@
-version: 2
-jobs:
-    # The test job
-    test:
-        working_directory: ~/project-name
+version: 2.1
+executors:
+    my-executor:
         docker:
-            - image: circleci/node:10-browsers
+            - image: circleci/node:8.9.4-browsers
+        working_directory: ~/fe_angular
+jobs:
+    setup-enviroment:
+        executor: my-executor
         steps:
             # Checkout the code from the branch into the working_directory
             - checkout
@@ -15,26 +17,229 @@ jobs:
             # Restore local dependencies from cache
             - restore_cache:
                   keys:
-                      - v1-dependencies-{{ checksum "package-lock.json" }}
+                      - v1-dependencies-{{ checksum "package.json" }}
                       - v1-dependencies-
             # Install project dependencies
             - run:
                   name: Install local dependencies
-                  command: npm install
+                  command: yarn install
+            - run:
+                  name: Build Node Sass
+                  command: yarn add --force node-sass
             # Cache local dependencies if they don't exist
             - save_cache:
-                  key: v1-dependencies-{{ checksum "package-lock.json" }}
+                  key: v1-dependencies-{{ checksum "package.json" }}
                   paths:
                       - node_modules
+            - persist_to_workspace:
+                  # Must be an absolute path, or relative path from working_directory. This is a directory on the container which is
+                  # taken to be the root directory of the workspace.
+                  root: .
+                  # Must be relative path from root
+                  paths:
+                      - src
+                      - package.json
+                      - angular.json
+                      - Dockerfile
+                      - tslint.json
+                      - tsconfig.json
+    code-checking:
+        executor: my-executor
+        steps:
+            - attach_workspace:
+                  at: ~/fe_angular
+            # Restore local dependencies from cache
+            - restore_cache:
+                  keys:
+                      - v1-dependencies-{{ checksum "package.json" }}
+                      - v1-dependencies-
             # Lint the source code
             - run:
                   name: Linting
-                  command: npm run lint
+                  command: yarn run lint
+    unit-test:
+        executor: my-executor
+        steps:
+            - attach_workspace:
+                  at: ~/fe_angular
+            # Restore local dependencies from cache
+            - restore_cache:
+                  keys:
+                      - v1-dependencies-{{ checksum "package.json" }}
+                      - v1-dependencies-
             # Test the source code
             - run:
                   name: Testing
-                  command: npm run test -- --no-watch --no-progress --browsers=ChromeHeadlessCI
-            # End to End test
+                  command: yarn run test
+    # The build job
+    build:
+        executor: my-executor
+        steps:
+            - attach_workspace:
+                  at: ~/fe_angular
+            # Restore local dependencies from cache
+            - restore_cache:
+                  keys:
+                      - v1-dependencies-{{ checksum "package.json" }}
+                      - v1-dependencies-
+            # Build project with different configuration based on
+            # the current branch
             - run:
-                  name: End to End Test
-                  command: npm run e2e -- --protractor-config=e2e/protractor-ci.conf.js
+                  name: Building
+                  command: |
+                      if [ "${CIRCLE_BRANCH}" == "develop" ]; then
+                          yarn build
+                      elif [ "${CIRCLE_BRANCH}" == "staging" ]; then
+                          yarn build
+                      elif [ "${CIRCLE_BRANCH}" == "master" ]; then
+                          yarn build
+                      else
+                          yarn build
+                      fi
+            # Cache the dist folder for the deploy job
+            - save_cache:
+                  key: v1-dist-{{ .Environment.CIRCLE_BRANCH }}-{{ .Environment.CIRCLE_SHA1 }}
+                  paths:
+                      - dist
+            - persist_to_workspace:
+                  # Must be an absolute path, or relative path from working_directory. This is a directory on the container which is
+                  # taken to be the root directory of the workspace.
+                  root: .
+                  # Must be relative path from root
+                  paths:
+                      - dist
+    # The build docker job
+    build-docker:
+        docker:
+            - image: circleci/cci-demo-docker-primary:0.0.2
+        working_directory: ~/fe_angular
+        steps:
+            - attach_workspace:
+                  at: ~/fe_angular
+            - run:
+                  name: Install Docker client
+                  command: |
+                      set -x
+                      VER="17.03.0-ce"
+                      curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
+                      tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+                      mv /tmp/docker/* /usr/bin
+            - run:
+                  name: Install Docker Compose
+                  command: |
+                      set -x
+                      curl -L https://github.com/docker/compose/releases/download/1.11.2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+                      chmod +x /usr/local/bin/docker-compose
+            - setup_remote_docker:
+                  docker_layer_caching: true
+            - deploy:
+                  name: Build and push Docker image
+                  command: |
+                      TAG="0.1.${CIRCLE_BUILD_NUM}"
+                      docker build -t $DOCKER_HUB_REPO:$TAG .
+                      docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+                      docker push $DOCKER_HUB_REPO:$TAG
+    # The deploy job
+    deploy-stage:
+        executor: my-executor
+        steps:
+            - attach_workspace:
+                  # Must be absolute path or relative path from working_directory
+                  at: ~/fe_angular
+            - restore_cache:
+                  keys:
+                      - v1-dependencies-{{ checksum "package.json" }}
+                      - v1-dependencies-
+            - run:
+                  name: Avoid hosts unknown for github
+                  command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+            # Deploy to GitPage
+            - run: git init
+            - run: git config user.name $GH_NAME
+            - run: git config user.email $GH_EMAIL
+            - run: git remote add origin $GH_REPO
+            - run: yarn run deploy
+    deploy-prod:
+        executor: my-executor
+        steps:
+            - attach_workspace:
+                  # Must be absolute path or relative path from working_directory
+                  at: ~/fe_angular
+            - restore_cache:
+                  keys:
+                      - v1-dependencies-{{ checksum "package.json" }}
+                      - v1-dependencies-
+            - run:
+                  name: Avoid hosts unknown for github
+                  command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+            # Deploy to GitPage
+            - run: git init
+            - run: git config user.name $GH_NAME
+            - run: git config user.email $GH_EMAIL
+            - run: git remote add origin $GH_REPO
+            - run: yarn run deploy
+workflows:
+    version: 2
+    nightly:
+        triggers:
+            - schedule:
+                  cron: "0 0 * * *"
+                  filters:
+                      branches:
+                          only:
+                              - master
+        jobs:
+            - build
+    commit:
+        jobs:
+            - setup-enviroment:
+                  filters:
+                      branches:
+                          ignore:
+                              - gh-pages
+            - code-checking:
+                  requires:
+                      - setup-enviroment
+            - unit-test:
+                  requires:
+                      - setup-enviroment
+            - build:
+                  requires:
+                      - setup-enviroment
+                  filters:
+                      branches:
+                          only:
+                              - develop
+                              - staging
+                              - master
+            - hold: # <<< A job that will require manual approval in the CircleCI web application.
+                  type: approval # <<< This key-value pair will set your workflow to a status of "On Hold"
+                  requires: # We only run the "hold" job when test2 has succeeded
+                      - build
+                  filters:
+                      branches:
+                          only:
+                              - staging
+                              - master
+            - build-docker:
+                  requires:
+                      - build
+                  filters:
+                      branches:
+                          only:
+                              - staging
+                              - master
+            # On approval of the `hold` job, any successive job that requires the `hold` job will run.
+            # In this case, a user is manually triggering the deploy job.
+            - deploy-stage:
+                  requires:
+                      - hold
+                  filters:
+                      branches:
+                          only: staging
+            - deploy-prod:
+                  requires:
+                      - hold
+                  filters:
+                      branches:
+                          only: master
