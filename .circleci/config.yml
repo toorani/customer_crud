@@ -19,6 +19,11 @@ jobs:
                 keys:
                 - v1-dependencies-{{ checksum "package.json" }}
                 - v1-dependencies-
+            # Install project dependencies
+            - run:
+                name: Install local dependencies
+                command: yarn install
+            
             # Cache local dependencies if they don't exist
             - save_cache:
                 key: v1-dependencies-{{ checksum "package.json" }}
@@ -33,6 +38,7 @@ jobs:
                     - src
                     - package.json
                     - angular.json
+                    - Dockerfile
                     - tslint.json
                     - tsconfig.json
     code-checking:
